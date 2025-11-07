@@ -1,0 +1,770 @@
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Chronicle - News Filter</title>
+  <style>
+    :root {
+      --primary: #1A1A1A;
+      --secondary: #8B0000;
+      --accent: #F5F5DC;
+      --light: #F9F9F9;
+      --gray: #6B6B6B;
+      --transition: 0.3s ease-in-out;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Georgia', serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--primary);
+      width: 100%;
+      height: 100%;
+      overflow-x: hidden;
+      padding: 1.5rem;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .container {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-height: 700px;
+    }
+    
+    header {
+      display: flex;
+      flex-direction: column;
+      border-bottom: 2px solid var(--primary);
+      margin-bottom: 1rem;
+    }
+    
+    .site-title {
+      font-family: 'Times New Roman', serif;
+      font-size: 2.5rem;
+      font-weight: 900;
+      letter-spacing: -1px;
+      text-align: center;
+      margin-bottom: 0.5rem;
+      position: relative;
+    }
+    
+    .site-title::after {
+      content: "Est. 2023";
+      position: absolute;
+      bottom: -5px;
+      right: 0;
+      font-size: 0.6rem;
+      font-style: italic;
+      font-weight: normal;
+      color: var(--gray);
+    }
+    
+    .filter-section {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 1rem;
+      background-color: var(--accent);
+      padding: 1rem;
+      border-radius: 4px;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .filter-section::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--secondary);
+    }
+    
+    .filter-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.75rem;
+    }
+    
+    .filter-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+    }
+    
+    .filter-reset {
+      background: transparent;
+      border: none;
+      color: var(--secondary);
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: 'Helvetica', sans-serif;
+      transition: var(--transition);
+      font-weight: bold;
+    }
+    
+    .filter-reset:hover {
+      text-decoration: underline;
+    }
+    
+    .filter-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+    
+    .filter-group-title {
+      font-family: 'Helvetica', sans-serif;
+      font-size: 0.8rem;
+      font-weight: bold;
+      color: var(--gray);
+      margin-bottom: 0.25rem;
+      width: 100%;
+    }
+    
+    .filter-btn {
+      padding: 0.4rem 0.8rem;
+      background-color: transparent;
+      border: 1px solid var(--primary);
+      border-radius: 50px;
+      cursor: pointer;
+      font-family: 'Helvetica', sans-serif;
+      font-size: 0.85rem;
+      transition: var(--transition);
+    }
+    
+    .filter-btn:hover {
+      background-color: var(--primary);
+      color: var(--light);
+    }
+    
+    .filter-btn.active {
+      background-color: var(--secondary);
+      color: var(--light);
+      border-color: var(--secondary);
+      font-weight: bold;
+    }
+    
+    .filter-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      font-family: 'Helvetica', sans-serif;
+    }
+    
+    .filter-count {
+      font-size: 0.85rem;
+      color: var(--gray);
+    }
+    
+    .sort-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .sort-label {
+      font-size: 0.85rem;
+      color: var(--gray);
+    }
+    
+    .sort-select {
+      padding: 0.25rem 0.5rem;
+      border: 1px solid var(--gray);
+      border-radius: 4px;
+      background-color: var(--light);
+      font-size: 0.85rem;
+      font-family: 'Helvetica', sans-serif;
+    }
+    
+    .news-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1rem;
+      overflow-y: auto;
+      height: 100%;
+      padding-right: 0.25rem;
+    }
+    
+    .article {
+      background-color: var(--light);
+      border: 1px solid #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: translateY(20px);
+      animation: fadeIn 0.6s forwards;
+      position: relative;
+    }
+    
+    .article:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    @keyframes fadeIn {
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .article-category {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background-color: var(--secondary);
+      color: var(--light);
+      padding: 0.2rem 0.6rem;
+      border-radius: 50px;
+      font-size: 0.75rem;
+      font-family: 'Helvetica', sans-serif;
+      font-weight: bold;
+      z-index: 1;
+    }
+    
+    .article-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      transition: var(--transition);
+    }
+    
+    .article:hover .article-image {
+      transform: scale(1.05);
+    }
+    
+    .article-content {
+      padding: 1rem;
+    }
+    
+    .article-date {
+      font-family: 'Helvetica', sans-serif;
+      font-size: 0.75rem;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .article-popularity {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .popularity-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #ddd;
+    }
+    
+    .popularity-dot.filled {
+      background-color: var(--secondary);
+    }
+    
+    .article-title {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      line-height: 1.4;
+    }
+    
+    .article-excerpt {
+      font-size: 0.9rem;
+      color: var(--gray);
+      line-height: 1.4;
+      margin-bottom: 0.75rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .read-more {
+      font-family: 'Helvetica', sans-serif;
+      color: var(--secondary);
+      font-size: 0.85rem;
+      font-weight: bold;
+      cursor: pointer;
+      display: inline-block;
+      position: relative;
+    }
+    
+    .read-more::after {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 1px;
+      bottom: -2px;
+      left: 0;
+      background-color: var(--secondary);
+      transform: scaleX(0);
+      transform-origin: bottom right;
+      transition: transform 0.3s ease;
+    }
+    
+    .read-more:hover::after {
+      transform: scaleX(1);
+      transform-origin: bottom left;
+    }
+    
+    .no-articles {
+      grid-column: 1 / -1;
+      padding: 2rem;
+      text-align: center;
+      border: 1px dashed var(--gray);
+      border-radius: 4px;
+    }
+    
+    .no-articles h3 {
+      margin-bottom: 0.5rem;
+      color: var(--secondary);
+    }
+    
+    .no-articles p {
+      color: var(--gray);
+      font-family: 'Helvetica', sans-serif;
+    }
+    
+    /* Custom scrollbar */
+    .news-grid::-webkit-scrollbar {
+      width: 5px;
+    }
+    
+    .news-grid::-webkit-scrollbar-track {
+      background: #f1f1f1;
+    }
+    
+    .news-grid::-webkit-scrollbar-thumb {
+      background: var(--gray);
+      border-radius: 10px;
+    }
+    
+    .news-grid::-webkit-scrollbar-thumb:hover {
+      background: var(--secondary);
+    }
+    
+    /* Animation for filter updates */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+    
+    .pulse {
+      animation: pulse 0.5s ease-in-out;
+    }
+    
+    /* Media Queries */
+    @media (max-width: 700px) {
+      .news-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .site-title {
+        font-size: 2rem;
+      }
+      
+      .filter-group {
+        gap: 0.5rem;
+      }
+      
+      .filter-btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+      }
+    }
+    
+    @media (max-width: 400px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .filter-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+      
+      .sort-control {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1 class="site-title">The Chronicle</h1>
+    </header>
+    
+    <section class="filter-section">
+      <div class="filter-header">
+        <h2 class="filter-title">Filter Articles</h2>
+        <button class="filter-reset" id="reset-filters">Reset Filters</button>
+      </div>
+      
+      <div class="filter-group">
+        <p class="filter-group-title">Categories</p>
+        <button class="filter-btn active" data-filter="category" data-value="all">All</button>
+        <button class="filter-btn" data-filter="category" data-value="politics">Politics</button>
+        <button class="filter-btn" data-filter="category" data-value="technology">Technology</button>
+        <button class="filter-btn" data-filter="category" data-value="science">Science</button>
+        <button class="filter-btn" data-filter="category" data-value="culture">Culture</button>
+        <button class="filter-btn" data-filter="category" data-value="economy">Economy</button>
+      </div>
+      
+      <div class="filter-group">
+        <p class="filter-group-title">Time Period</p>
+        <button class="filter-btn active" data-filter="date" data-value="all">All Time</button>
+        <button class="filter-btn" data-filter="date" data-value="today">Today</button>
+        <button class="filter-btn" data-filter="date" data-value="week">This Week</button>
+        <button class="filter-btn" data-filter="date" data-value="month">This Month</button>
+      </div>
+      
+      <div class="filter-group">
+        <p class="filter-group-title">Popularity</p>
+        <button class="filter-btn active" data-filter="popularity" data-value="all">All</button>
+        <button class="filter-btn" data-filter="popularity" data-value="trending">Trending</button>
+        <button class="filter-btn" data-filter="popularity" data-value="popular">Most Popular</button>
+      </div>
+      
+      <div class="filter-info">
+        <p class="filter-count" id="article-count">Showing <span>12</span> articles</p>
+        <div class="sort-control">
+          <label for="sort-by" class="sort-label">Sort by:</label>
+          <select id="sort-by" class="sort-select">
+            <option value="newest">Newest First</option>
+            <option value="oldest">Oldest First</option>
+            <option value="popular">Most Popular</option>
+          </select>
+        </div>
+      </div>
+    </section>
+    
+    <main class="news-grid" id="news-grid">
+      <!-- Articles will be generated by JavaScript -->
+    </main>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      // News articles data
+      const articles = [
+        {
+          id: 1,
+          title: "Senate Passes Landmark Climate Bill After Marathon Session",
+          excerpt: "The bill introduces unprecedented measures to combat climate change, with billions allocated for renewable energy infrastructure.",
+          category: "politics",
+          image: "https://source.unsplash.com/random/600x400?politics,climate",
+          date: new Date(2023, 8, 28),
+          popularity: 5
+        },
+        {
+          id: 2,
+          title: "Scientists Discover Potential Breakthrough in Cancer Treatment",
+          excerpt: "Researchers have identified a novel protein that could revolutionize how we treat aggressive forms of breast cancer.",
+          category: "science",
+          image: "https://source.unsplash.com/random/600x400?science,laboratory",
+          date: new Date(2023, 8, 30),
+          popularity: 4
+        },
+        {
+          id: 3,
+          title: "Global Tech Giant Unveils Revolutionary AI Assistant",
+          excerpt: "The new AI system can understand and respond to complex human emotions, marking a significant leap in artificial intelligence development.",
+          category: "technology",
+          image: "https://source.unsplash.com/random/600x400?technology,ai",
+          date: new Date(2023, 9, 1),
+          popularity: 5
+        },
+        {
+          id: 4,
+          title: "Historic Art Collection Returns to National Museum",
+          excerpt: "After decades abroad, the renowned Renaissance collection returns home, featuring newly restored masterpieces never before seen by the public.",
+          category: "culture",
+          image: "https://source.unsplash.com/random/600x400?art,museum",
+          date: new Date(2023, 8, 15),
+          popularity: 3
+        },
+        {
+          id: 5,
+          title: "Central Bank Signals Interest Rate Relief Amid Economic Concerns",
+          excerpt: "Policy makers hint at potential rate cuts as inflation shows signs of cooling and employment numbers stabilize.",
+          category: "economy",
+          image: "https://source.unsplash.com/random/600x400?economy,finance",
+          date: new Date(2023, 9, 2),
+          popularity: 4
+        },
+        {
+          id: 6,
+          title: "New Constitutional Amendment Proposed to Protect Digital Privacy",
+          excerpt: "Bipartisan group of legislators introduces sweeping reforms aimed at preventing government surveillance of citizens' online activities.",
+          category: "politics",
+          image: "https://source.unsplash.com/random/600x400?privacy,government",
+          date: new Date(2023, 8, 20),
+          popularity: 3
+        },
+        {
+          id: 7,
+          title: "Quantum Computing Milestone: 1000 Qubit Processor Developed",
+          excerpt: "Tech researchers have created the most powerful quantum computer to date, potentially solving problems impossible for conventional machines.",
+          category: "technology",
+          image: "https://source.unsplash.com/random/600x400?quantum,computing",
+          date: new Date(2023, 8, 25),
+          popularity: 4
+        },
+        {
+          id: 8,
+          title: "Unprecedented Arctic Ice Recovery Puzzles Climate Scientists",
+          excerpt: "This year's surprising ice formation challenges predictions and prompts researchers to revisit climate models.",
+          category: "science",
+          image: "https://source.unsplash.com/random/600x400?arctic,ice",
+          date: new Date(2023, 9, 3),
+          popularity: 5
+        },
+        {
+          id: 9,
+          title: "Global Supply Chain Recovers as Port Congestion Eases",
+          excerpt: "After two years of disruption, shipping routes normalize, bringing potential relief to consumer goods pricing and availability.",
+          category: "economy",
+          image: "https://source.unsplash.com/random/600x400?shipping,port",
+          date: new Date(2023, 8, 18),
+          popularity: 2
+        },
+        {
+          id: 10,
+          title: "Revolutionary Film Technique Transforms Independent Cinema",
+          excerpt: "The award-winning approach combines traditional methods with digital innovation, allowing filmmakers to achieve studio-quality results on minimal budgets.",
+          category: "culture",
+          image: "https://source.unsplash.com/random/600x400?film,cinema",
+          date: new Date(2023, 9, 4),
+          popularity: 3
+        },
+        {
+          id: 11,
+          title: "Cryptocurrency Regulation Framework Released by Treasury Department",
+          excerpt: "The long-awaited guidelines provide clarity for investors while establishing consumer protections in the volatile digital currency space.",
+          category: "economy",
+          image: "https://source.unsplash.com/random/600x400?cryptocurrency,bitcoin",
+          date: new Date(2023, 9, 5),
+          popularity: 4
+        },
+        {
+          id: 12,
+          title: "Archeologists Uncover Ancient City Beneath Mediterranean Sea",
+          excerpt: "The remarkably preserved underwater discovery could rewrite our understanding of early Mediterranean civilizations and trade networks.",
+          category: "science",
+          image: "https://source.unsplash.com/random/600x400?archeology,underwater",
+          date: new Date(2023, 8, 10),
+          popularity: 4
+        }
+      ];
+      
+      // Filter state
+      let filters = {
+        category: 'all',
+        date: 'all',
+        popularity: 'all',
+        sort: 'newest'
+      };
+      
+      // DOM elements
+      const newsGrid = document.getElementById('news-grid');
+      const articleCount = document.getElementById('article-count').querySelector('span');
+      const sortSelect = document.getElementById('sort-by');
+      const resetButton = document.getElementById('reset-filters');
+      const filterButtons = document.querySelectorAll('.filter-btn');
+      
+      // Initialize the page
+      renderArticles();
+      
+      // Event listeners
+      filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+          const filterType = this.dataset.filter;
+          const filterValue = this.dataset.value;
+          
+          // Update active buttons
+          document.querySelectorAll(`.filter-btn[data-filter="${filterType}"]`).forEach(btn => {
+            btn.classList.remove('active');
+          });
+          this.classList.add('active');
+          
+          // Update filters
+          filters[filterType] = filterValue;
+          
+          // Render filtered articles
+          newsGrid.classList.add('pulse');
+          setTimeout(() => {
+            newsGrid.classList.remove('pulse');
+          }, 500);
+          
+          renderArticles();
+        });
+      });
+      
+      sortSelect.addEventListener('change', function() {
+        filters.sort = this.value;
+        renderArticles();
+      });
+      
+      resetButton.addEventListener('click', function() {
+        // Reset all filters to default
+        filters = {
+          category: 'all',
+          date: 'all',
+          popularity: 'all',
+          sort: 'newest'
+        };
+        
+        // Reset active buttons
+        filterButtons.forEach(button => {
+          if (button.dataset.value === 'all') {
+            button.classList.add('active');
+          } else {
+            button.classList.remove('active');
+          }
+        });
+        
+        // Reset sort select
+        sortSelect.value = 'newest';
+        
+        // Render all articles
+        renderArticles();
+        
+        // Add animation
+        newsGrid.classList.add('pulse');
+        setTimeout(() => {
+          newsGrid.classList.remove('pulse');
+        }, 500);
+      });
+      
+      // Function to render articles based on filters
+      function renderArticles() {
+        // Clear the grid
+        newsGrid.innerHTML = '';
+        
+        // Filter articles
+        let filteredArticles = [...articles];
+        
+        // Apply category filter
+        if (filters.category !== 'all') {
+          filteredArticles = filteredArticles.filter(article => article.category === filters.category);
+        }
+        
+        // Apply date filter
+        if (filters.date !== 'all') {
+          const now = new Date();
+          
+          if (filters.date === 'today') {
+            filteredArticles = filteredArticles.filter(article => 
+              article.date.toDateString() === now.toDateString()
+            );
+          } else if (filters.date === 'week') {
+            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+            filteredArticles = filteredArticles.filter(article => 
+              article.date >= weekAgo
+            );
+          } else if (filters.date === 'month') {
+            const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+            filteredArticles = filteredArticles.filter(article => 
+              article.date >= monthAgo
+            );
+          }
+        }
+        
+        // Apply popularity filter
+        if (filters.popularity !== 'all') {
+          if (filters.popularity === 'trending') {
+            filteredArticles = filteredArticles.filter(article => 
+              article.popularity >= 3
+            );
+          } else if (filters.popularity === 'popular') {
+            filteredArticles = filteredArticles.filter(article => 
+              article.popularity >= 4
+            );
+          }
+        }
+        
+        // Sort articles
+        if (filters.sort === 'newest') {
+          filteredArticles.sort((a, b) => b.date - a.date);
+        } else if (filters.sort === 'oldest') {
+          filteredArticles.sort((a, b) => a.date - b.date);
+        } else if (filters.sort === 'popular') {
+          filteredArticles.sort((a, b) => b.popularity - a.popularity);
+        }
+        
+        // Update article count
+        articleCount.textContent = filteredArticles.length;
+        
+        // Render articles
+        if (filteredArticles.length === 0) {
+          const noArticles = document.createElement('div');
+          noArticles.className = 'no-articles';
+          noArticles.innerHTML = `
+            <h3>No articles found</h3>
+            <p>Try adjusting your filters to see more results.</p>
+          `;
+          newsGrid.appendChild(noArticles);
+        } else {
+          filteredArticles.forEach((article, index) => {
+            const articleEl = document.createElement('article');
+            articleEl.className = 'article';
+            articleEl.style.animationDelay = `${index * 0.1}s`;
+            
+            const formatDate = (date) => {
+              const options = { month: 'short', day: 'numeric', year: 'numeric' };
+              return date.toLocaleDateString('en-US', options);
+            };
+            
+            articleEl.innerHTML = `
+              <span class="article-category">${article.category.charAt(0).toUpperCase() + article.category.slice(1)}</span>
+              <img src="${article.image}" alt="${article.title}" class="article-image">
+              <div class="article-content">
+                <div class="article-date">
+                  ${formatDate(article.date)}
+                  <div class="article-popularity">
+                    ${getPopularityDots(article.popularity)}
+                  </div>
+                </div>
+                <h3 class="article-title">${article.title}</h3>
+                <p class="article-excerpt">${article.excerpt}</p>
+                <span class="read-more">Read Full Story</span>
+              </div>
+            `;
+            
+            newsGrid.appendChild(articleEl);
+          });
+        }
+      }
+      
+      // Helper function to generate popularity dots
+      function getPopularityDots(popularity) {
+        let dots = '';
+        for (let i = 1; i <= 5; i++) {
+          if (i <= popularity) {
+            dots += '<span class="popularity-dot filled"></span>';
+          } else {
+            dots += '<span class="popularity-dot"></span>';
+          }
+        }
+        return dots;
+      }
+    });
+  </script>
+</body>
+</html>
